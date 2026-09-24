@@ -1,7 +1,16 @@
-import TransactionForm from "@/features/transactions/transaction-form.tsx"
 import type { Transaction } from "@/features/transactions/types.ts"
 import { transactionService } from "@/features/transactions/transaction-service.ts"
 import { useEffect, useState } from "react"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import CreateTransaction from "@/features/transactions/components/create-transaction.tsx"
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -38,73 +47,42 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <h2>Transactions</h2>
-      <TransactionForm onTransactionAdd={handleAddTransaction} />
+      <div className="flex w-full items-center justify-between">
+        <h1>Transaction Records</h1>
+        <CreateTransaction onTransactionAdd={handleAddTransaction}/>
+      </div>
+
+      <Table>
+        <TableCaption>A list of your recent transactions.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Description</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((transaction) => (
+            <TableRow key={transaction.id}>
+              <TableCell className="font-medium capitalize">
+                {transaction.description}
+              </TableCell>
+              <TableCell>{transaction.date.split("T")[0]}</TableCell>
+              <TableCell>{transaction.type.toUpperCase()}</TableCell>
+              <TableCell
+                className={`p-4 text-right font-bold ${transaction.type === "income" ? "text-green-600" : transaction.type === "expense" ? "text-red-600" : "text-blue-600"}`}
+              >
+                Rs {transaction.amount.toFixed(2)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+
 
       {/*{error && <p className="text-red-400">{error}</p>}*/}
-
-      <h1>Transaction Records</h1>
-      {transactions.length === 0 ? (
-        <p>No records yet...</p>
-      ) : (
-        <ul>
-          {transactions.map((tx) => {
-            const colorMap: Record<string, string> = {
-              income: "text-green-500",
-              expense: "text-red-500",
-              savings: "text-blue-500",
-            }
-
-            const signMap: Record<string, string> = {
-              income: "+",
-              expense: "-",
-              savings: "➡️",
-            }
-
-            // 2. Safe mapping extraction using the lowercase type directly
-            const currentType = tx.type || "expense"
-            const colorClass = colorMap[currentType] || "text-gray-500"
-            const sign = signMap[currentType] || ""
-
-            const cleanAmount =
-              typeof tx.amount === "number"
-                ? tx.amount
-                : parseFloat(tx.amount || "0") || 0
-
-            // 3. 🛡️ Safe Date Formatting: Extract just the YYYY-MM-DD string part
-            const displayDate = tx.date
-              ? String(tx.date).split("T")[0]
-              : "No Date"
-
-            return (
-              <li
-                key={tx.id}
-                className="flex items-center justify-between border-b border-gray-100 py-3"
-              >
-                <div>
-                  {/* Render the string item index [0] instead of the whole array object */}
-                  <span className="mr-3 font-mono text-sm text-gray-400">
-                    {displayDate}
-                  </span>
-                  <span className="font-medium text-gray-800">
-                    {tx.description || "Untitled Transaction"}
-                  </span>
-
-                  {tx.category && (
-                    <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      {tx.category.name}
-                    </span>
-                  )}
-                </div>
-
-                <span className={`font-bold ${colorClass}`}>
-                  {sign}\${cleanAmount.toFixed(2)}
-                </span>
-              </li>
-            )
-          })}
-        </ul>
-      )}
     </div>
   )
 }

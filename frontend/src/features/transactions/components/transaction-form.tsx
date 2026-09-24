@@ -10,13 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx"
+import { transactionService } from "../transaction-service"
 
 interface TransactionFormProps {
-  onTransactionAdd: (transaction: Transaction) => void
+  onSaveSuccess: (transaction: Transaction) => void
 }
 
 export default function TransactionForm({
-  onTransactionAdd,
+  onSaveSuccess,
 }: TransactionFormProps) {
   const [description, setDescription] = useState<string | "">("")
   const [amount, setAmount] = useState<string | "">("")
@@ -25,29 +26,43 @@ export default function TransactionForm({
     new Date().toISOString().split("T")[0]
   )
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsSubmitting(true)
+    setFormError(null)
 
     if (!description || !amount) return
 
-    const newTransaction: Transaction = {
+    const newTx: Transaction = {
       description,
       amount: parseFloat(amount),
       type,
       date,
     }
 
-    onTransactionAdd(newTransaction)
-
-    setDescription("")
-    setAmount("")
+    try {
+      const savedTx = await transactionService.createTransaction(newTx)
+      onSaveSuccess(savedTx)
+    } catch (err) {
+      console.error(err)
+      setFormError("Failed to save transaction record. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-6 md:grid-cols-2"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2"
     >
+      {formError && (
+        <div className="text-sm font-medium text-red-600">{formError}</div>
+      )}
+
       <Input
         type="text"
         placeholder="Description (e.g., Grocery)"
@@ -80,8 +95,8 @@ export default function TransactionForm({
         onChange={(e) => setDate(e.target.value)}
         required
       />
-      <Button type="submit" className="col-span-2">
-        Add Transaction
+      <Button type="submit" disabled={isSubmitting} className="col-span-2">
+        {isSubmitting ? "Saving..." : "Save Record"}
       </Button>
     </form>
   )
