@@ -1,5 +1,15 @@
 import { useState } from "react"
 import type { Transaction } from "@/features/transactions/types.ts"
+import { Button } from "@/components/ui/button.tsx"
+import { Input } from "@/components/ui/input.tsx"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx"
 
 interface TransactionFormProps {
   onTransactionAdd: (transaction: Transaction) => void
@@ -29,41 +39,50 @@ export default function TransactionForm({
 
     onTransactionAdd(newTransaction)
 
-    setDescription('');
-    setAmount('');
+    setDescription("")
+    setAmount("")
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-      <input
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-1 gap-6 md:grid-cols-2"
+    >
+      <Input
         type="text"
         placeholder="Description (e.g., Grocery)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         required
       />
-      <input
+      <Input
         type="number"
         placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         required
       />
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value as "income" | "expense" | "savings")}
-      >
-        <option value="expense">Expense</option>
-        <option value="income">Income</option>
-        <option value="savings">Savings</option>
-      </select>
-      <input
+      <Select>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select Type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem value="income">Income</SelectItem>
+            <SelectItem value="expense">Expense</SelectItem>
+            <SelectItem value="savings">Savings</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
         required
       />
-      <button type="submit">Add Transaction</button>
+      <Button type="submit" className="col-span-2">
+        Add Transaction
+      </Button>
     </form>
   )
 }
